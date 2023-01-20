@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   StyleSheet,
   StatusBar,
@@ -12,14 +12,55 @@ import styles from "./mainStyles";
 
 const MainScreen = () => {
   const [value, setValue] = useState("0");
+  const [bracketOpen, setBracketOpen] = useState(false);
+  const scrollViewRef = useRef();
+
   const handlePress = (val) => {
-    console.log("Press", val);
+    // console.log("Press", val);
     if (val == "AC") {
       setValue("0");
     } else if (val == "=") {
-      setValue("0");
+      try {
+        if (
+          (value.match(/\(/g) || []).length == (value.match(/\)/g) || []).length
+        ) {
+          //   console.log("Equal");
+          if (isNaN(value.slice(-1)) && value.slice(-1) != ")") {
+            setValue(`${eval(value.replace("()", "(0)").slice(0, -1))}`);
+          } else {
+            setValue(`${eval(value.replace("()", "(0)"))}`);
+          }
+        }
+      } catch (error) {
+        setValue("Format error, Values are unformatted.");
+      }
     } else if (val == "<") {
+      // Back button
+      setValue(value.slice(0, -1));
     } else if (val == "()") {
+      /// brackets logic
+      if (value == "0") {
+        setValue("(");
+        // console.log("True");
+        setBracketOpen(true);
+      } else if (
+        isNaN(value.slice(-1)) &&
+        value.slice(-1) != "(" &&
+        value.slice(-1) != ")"
+      ) {
+        setValue(value + "(");
+        setBracketOpen(true);
+      } else {
+        if (bracketOpen == true) {
+          setValue(value + ")");
+          //   console.log("False");
+          setBracketOpen(false);
+        } else {
+          setValue(value + "(");
+          setBracketOpen(true);
+          //   console.log("True");
+        }
+      }
     } else {
       if (value == "0") {
         if (isNaN(val)) {
@@ -28,7 +69,11 @@ const MainScreen = () => {
           setValue(val);
         }
       } else if (isNaN(val)) {
-        if (isNaN(value.slice(-1))) {
+        if (
+          isNaN(value.slice(-1)) &&
+          value.slice(-1) != "(" &&
+          value.slice(-1) != ")"
+        ) {
           setValue(value.slice(0, -1) + val);
         } else {
           setValue(value + val);
@@ -43,8 +88,16 @@ const MainScreen = () => {
     <View style={styles.main}>
       <StatusBar />
       <View style={styles.mainScreen}>
-        <ScrollView style={styles.main_display}>
-          <Text style={styles.main_displayText}>{value}</Text>
+        <ScrollView
+          ref={scrollViewRef}
+          onContentSizeChange={() =>
+            scrollViewRef.current.scrollToEnd({ animated: true })
+          }
+          style={styles.main_display}
+        >
+          <Text style={styles.main_displayText}>
+            {value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          </Text>
         </ScrollView>
         <View style={styles.mainScreen_keypad}>
           {/* row1  */}
