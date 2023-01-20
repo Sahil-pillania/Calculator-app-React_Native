@@ -28,6 +28,7 @@ const styles = {
   },
   main_displayText: {
     fontSize: 50,
+    padding: 13,
     textAlign: "right",
   },
   mainScreen_keypad: {
